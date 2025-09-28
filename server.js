@@ -1,28 +1,32 @@
+// wrapper.js — Railway service: CSR data provider
+
 import express from "express";
-import cors from "cors";
-
 const app = express();
-app.use(cors());
 
-// Simple health check
-app.get("/", (_, res) => res.send("wrapper ok"));
+const PORT = process.env.PORT || 3000;
+const SHARED_SECRET = process.env.HALO_SHARED_SECRET;
 
-// The endpoint your Worker will call
 app.get("/csr", (req, res) => {
-  const { gt, playlist } = req.query;
-  if (!gt || !playlist) {
-    return res.status(400).json({ error: "missing gt/playlist" });
+  // Verify secret
+  const auth = req.headers["x-halo-auth"];
+  if (!auth || auth !== SHARED_SECRET) {
+    return res.status(401).send("Unauthorized");
   }
 
-  // ⛳️ STUB: return fake data so you can test end-to-end.
-  // Later you’ll replace this with the Grunt-backed code.
+  const gt = req.query.gt;
+  const playlist = req.query.playlist;
+
+  if (!gt || !playlist) {
+    return res.status(400).send("Missing gt or playlist");
+  }
+
+  // --- Stubbed response (replace with real CSR lookup later) ---
   return res.json({
-    csr: 1450,
-    tier: "Diamond 2"
+    csr: `CSR for ${gt} in playlist ${playlist}`,
+    tier: "Onyx" // Example role tier
   });
 });
 
-const PORT = process.env.PORT || 8080;
 app.listen(PORT, () => {
-  console.log(`Wrapper stub listening on ${PORT}`);
+  console.log(`Wrapper running on port ${PORT}`);
 });
